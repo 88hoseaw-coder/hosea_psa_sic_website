@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silicon Carbide — SiC</title>
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:auto}
+body{
+  background:#000;color:#f5f5f5;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;line-height:1.5;
+}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:2px}
+
+/* ===== TYPOGRAPHY ===== */
+.t-label{font-size:0.7rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#00d4ff}
+.t-hero{font-size:clamp(3.2rem,10vw,8rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;color:#fff}
+.t-headline{font-size:clamp(2rem,5.5vw,4rem);font-weight:700;letter-spacing:-0.03em;line-height:1.08;color:#fff}
+.t-subhead{font-size:clamp(1.3rem,2.5vw,1.8rem);font-weight:600;letter-spacing:-0.02em;line-height:1.2;color:#fff}
+.t-body{font-size:clamp(1rem,1.4vw,1.15rem);font-weight:400;line-height:1.6;color:#c8c8c8}
+.t-small{font-size:0.9rem;font-weight:400;line-height:1.55;color:#b0b0b0}
+.t-caption{font-size:0.75rem;font-weight:500;color:#888}
+
+/* ===== LAYOUT ===== */
+.section-pad{padding:140px 24px}
+@media(min-width:768px){.section-pad{padding:180px 40px}}
+@media(min-width:1024px){.section-pad{padding:220px 48px}}
+
+.max-w{max-width:1100px;margin:0 auto}
+.max-w-sm{max-width:720px;margin:0 auto}
+
+/* ===== GLASS CARD ===== */
+.glass{
+  background:rgba(255,255,255,0.015);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:20px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.grad-cyan{
+  background:linear-gradient(135deg,#00d4ff,#7dd3fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* ===== DIVIDER ===== */
+.divider{height:1px;background:rgba(255,255,255,0.025);max-width:800px;margin:0 auto}
+
+/* ===== CANVAS BG ===== */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ===== HERO ===== */
+.hero{position:relative;min-height:100dvh;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;z-index:2}
+.hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:0;transition:opacity 1.8s ease}
+.hero-img.loaded{opacity:0.35}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,#000 0%,rgba(0,0,0,0.5) 40%,rgba(0,0,0,0.6) 100%)}
+.hero-content{position:relative;z-index:10;text-align:center;padding-bottom:15vh;max-width:800px;padding-left:24px;padding-right:24px}
+.hero h1{margin-bottom:24px}
+.hero p{max-width:500px;margin:0 auto}
+
+/* ===== NAV ===== */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:all .5s;opacity:0;transform:translateY(-100%);pointer-events:none}
+.nav.vis{opacity:1;transform:translateY(0);pointer-events:auto}
+.nav-inner{
+  margin:12px 16px 0;
+  background:rgba(255,255,255,0.015);
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:16px;
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  max-width:680px;margin-left:auto;margin-right:auto;
+}
+.nav a{color:#888;text-decoration:none;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;transition:color .2s;padding:4px 8px}
+.nav a:hover{color:#f5f5f5}
+.nav-brand{font-weight:700!important;color:#f0f0f0!important;letter-spacing:0.15em!important}
+
+/* ===== GRID ===== */
+.grid-2{display:grid;gap:20px}
+.grid-4{display:grid;gap:12px}
+@media(min-width:768px){.grid-2{grid-template-columns:1fr 1fr}.grid-4{grid-template-columns:1fr 1fr 1fr 1fr}}
+
+/* ===== SCROLL ANIM ===== */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity 1s cubic-bezier(.25,.46,.45,.94),transform 1s cubic-bezier(.25,.46,.45,.94)}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+/* ===== STRUCTURE VIZ ===== */
+.viz-wrap{position:relative;width:100%;max-width:380px;margin:0 auto;aspect-ratio:1}
+.viz-ring{position:absolute;border:1px solid rgba(0,212,255,0.06);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.viz-ring-1{width:70%;height:70%}
+.viz-ring-2{width:90%;height:90%;border-color:rgba(0,212,255,0.04)}
+.viz-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:#00d4ff;box-shadow:0 0 30px rgba(0,212,255,0.4)}
+.viz-atom{position:absolute;width:14px;height:14px;border-radius:50%;background:#0ea5e9;box-shadow:0 0 15px rgba(14,165,233,0.3);top:50%;left:50%}
+.viz-atom:nth-child(4){transform:translate(-50%,-50%) translateY(-60px)}
+.viz-atom:nth-child(5){transform:translate(-50%,-50%) rotate(120deg) translateY(55px)}
+.viz-atom:nth-child(6){transform:translate(-50%,-50%) rotate(240deg) translateY(55px)}
+
+/* ===== LOGIC CHAIN ===== */
+.chain-line{height:1px;background:rgba(255,255,255,0.05);transform:scaleX(0);transform-origin:left;transition:transform 1.5s cubic-bezier(.25,.46,.45,.94)}
+.chain-line.vis{transform:scaleX(1)}
+
+/* ===== USES / SOCIETY IMAGE PLACE ===== */
+.img-placeholder{
+  width:100%;max-width:900px;margin:0 auto;
+  aspect-ratio:16/9;border-radius:20px;overflow:hidden;
+  background:linear-gradient(135deg,#0a0a0f 0%,#0d1a1f 50%,#0a0a0f 100%);
+  position:relative;
+}
+.img-placeholder::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 50%,rgba(0,212,255,0.08) 0%,transparent 70%);
+}
+.img-placeholder-inner{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+}
+.img-label{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:#444}
+
+/* ===== BENEFIT ICONS ===== */
+.icon-row{display:flex;align-items:flex-start;gap:12px}
+.icon-dot{width:6px;height:6px;border-radius:50%;background:#00d4ff;margin-top:8px;flex-shrink:0}
+
+/* ===== FOOTER ===== */
+footer{padding:40px 24px;text-align:center}
+footer p{font-size:0.6rem;color:#444;letter-spacing:0.2em;text-transform:uppercase}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:767px){
+  .hide-mob{display:none!important}
+}
+@media(min-width:768px){
+  .show-mob{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="bgCanvas"></canvas>
+<div style="position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,0.02) 0%,transparent 55%)"></div>
+
+<!-- NAVIGATION -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-brand">SiC</a>
+    <div class="hide-mob" style="display:flex;gap:4px">
+      <a href="#basics">Overview</a>
+      <a href="#structure">Structure</a>
+      <a href="#properties">Properties</a>
+      <a href="#uses">Uses</a>
+      <a href="#impact">Impact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+  <div class="hero-img" id="heroImg" style="background:radial-gradient(ellipse at 50% 30%,rgba(0,212,255,0.15) 0%,#000 70%)"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <span class="t-label" style="display:block;margin-bottom:24px;opacity:0;animation:fadeInUp .8s .2s forwards">Introducing</span>
+    <h1 class="t-hero" style="opacity:0;animation:fadeInUp 1s .4s forwards">Silicon<br>Carbide.</h1>
+    <p class="t-body" style="opacity:0;animation:fadeInUp .8s .7s forwards;margin-top:24px">
+      A compound of silicon and carbon, used in power electronics, solar systems, and industrial applications.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== BASIC INFO ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="basics" style="position:relative;z-index:2">
+  <div class="max-w-sm text-center">
+    <div class="reveal">
+      <span class="t-label" style="display:block;margin-bottom:24px">01 / Overview</span>
+      <h2 class="t-headline" style="margin-bottom:32px">What is SiC?</h2>
+      <p class="t-body" style="margin-bottom:80px;max-width:560px;margin-left:auto;margin-right:auto">
+        A compound where silicon and carbon atoms bond in a very strong three-dimensional covalent network.
+      </p>
+    </div>
+    <div class="reveal grid-4" style="transition-delay:.15s">
+      <div class="glass" style="padding:20px;text-align:left">
+        <span class="t-caption" style="display:block;margin-bottom:8px">Compound</span>
+        <span style="color:#f0f0f0;font-size:0.9rem;font-weight:600">Silicon Carbide</span>
+      </div>
+      <div class="glass" style="padding:20px;text-align:left">
+        <span class="t-caption" style="display:block;margin-bottom:8px">Formula</span>
+        <span style="color:#f0f0f0;font-size:0.9rem;font-weight:600">SiC</span>
+      </div>
+      <div class="glass" style="padding:20px;text-align:left">
+        <span class="t-caption" style="display:block;margin-bottom:8px">Elements</span>
+        <span style="color:#f0f0f0;font-size:0.9rem;font-weight:600">Silicon + Carbon</span>
+      </div>
+      <div class="glass" style="padding:20px;text-align:left">
+        <span class="t-caption" style="display:block;margin-bottom:8px">Type</span>
+        <span style="color:#f0f0f0;font-size:0.9rem;font-weight:600">Covalent network solid</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PERIODIC TRENDS ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="trends" style="position:relative;z-index:2">
+  <div class="max-w" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:80px">
+      <span class="t-label" style="display:block;margin-bottom:24px">02 / Periodic Trends</span>
+      <h2 class="t-headline">Silicon vs. Carbon.</h2>
+    </div>
+    <div class="grid-2">
+      <div class="reveal glass" style="padding:28px;transition-delay:.1s">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.95rem">Atomic Radius</h3>
+          <span class="grad-cyan" style="font-family:monospace;font-size:1.1rem;font-weight:600">Si &gt; C</span>
+        </div>
+        <p class="t-small">Silicon has more electron shells. Down a group, atoms get larger.</p>
+      </div>
+      <div class="reveal glass" style="padding:28px;transition-delay:.15s">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.95rem">Ionization Energy</h3>
+          <span class="grad-cyan" style="font-family:monospace;font-size:1.1rem;font-weight:600">C &gt; Si</span>
+        </div>
+        <p class="t-small">Carbon holds electrons tighter. Smaller atoms have stronger nuclear pull.</p>
+      </div>
+      <div class="reveal glass" style="padding:28px;transition-delay:.2s">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.95rem">Electronegativity</h3>
+          <span class="grad-cyan" style="font-family:monospace;font-size:1.1rem;font-weight:600">C &gt; Si</span>
+        </div>
+        <p class="t-small">Carbon ≈ 2.55, Silicon ≈ 1.90. Electronegativity decreases down a group.</p>
+      </div>
+      <div class="reveal glass" style="padding:28px;transition-delay:.25s">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.95rem">Electron Affinity</h3>
+          <span class="grad-cyan" style="font-family:monospace;font-size:1.1rem;font-weight:600">Complex</span>
+        </div>
+        <p class="t-small">Electron affinity is harder to compare directly because this trend is less simple than atomic radius or electronegativity.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== STRUCTURE ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="structure" style="position:relative;z-index:2">
+  <div class="max-w" style="padding:0 24px">
+    <div style="display:grid;grid-template-columns:1fr;gap:64px;align-items:center">
+      <div>
+        <div class="reveal">
+          <span class="t-label" style="display:block;margin-bottom:24px">03 / Structure</span>
+          <h2 class="t-headline" style="margin-bottom:32px">A 3D covalent network.</h2>
+          <p class="t-body" style="margin-bottom:40px">
+            Every silicon atom bonds to four carbons. Every carbon bonds to four silicons. The result is a rigid lattice extending in all directions.
+          </p>
+        </div>
+        <div class="reveal" style="transition-delay:.15s">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="icon-row"><div class="icon-dot"></div><p class="t-small">Strong directional covalent bonds throughout</p></div>
+            <div class="icon-row"><div class="icon-dot"></div><p class="t-small">Tetrahedral geometry at every atom</p></div>
+            <div class="icon-row"><div class="icon-dot"></div><p class="t-small">One giant structure — no individual molecules</p></div>
+          </div>
+        </div>
+      </div>
+      <!-- SVG Structure Visualization -->
+      <div class="reveal" style="transition-delay:.2s">
+        <div class="glass" style="padding:40px;display:flex;justify-content:center">
+          <svg viewBox="0 0 300 300" style="width:100%;max-width:320px;height:auto">
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(0,212,255,0.3)"/><stop offset="100%" stop-color="rgba(0,212,255,0)"/></radialGradient>
+            </defs>
+            <!-- Rings -->
+            <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(0,212,255,0.06)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="130" fill="none" stroke="rgba(0,212,255,0.04)" stroke-width="1" stroke-dasharray="4 8"/>
+            <!-- Bond lines -->
+            <line x1="150" y1="150" x2="150" y2="70" stroke="rgba(0,212,255,0.25)" stroke-width="1.5"/>
+            <line x1="150" y1="150" x2="219" y2="190" stroke="rgba(0,212,255,0.25)" stroke-width="1.5"/>
+            <line x1="150" y1="150" x2="81" y2="190" stroke="rgba(0,212,255,0.25)" stroke-width="1.5"/>
+            <line x1="150" y1="150" x2="150" y2="230" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+            <!-- Triangle edges -->
+            <polygon points="150,70 219,190 81,190" fill="none" stroke="rgba(0,212,255,0.1)" stroke-width="1"/>
+            <line x1="150" y1="230" x2="219" y2="190" stroke="rgba(0,212,255,0.08)" stroke-width="1"/>
+            <line x1="150" y1="230" x2="81" y2="190" stroke="rgba(0,212,255,0.08)" stroke-width="1"/>
+            <!-- Center Si atom -->
+            <circle cx="150" cy="150" r="14" fill="#00d4ff" opacity="0.9"/>
+            <circle cx="150" cy="150" r="30" fill="url(#glow)"/>
+            <!-- Corner C atoms -->
+            <circle cx="150" cy="70" r="10" fill="#0ea5e9" opacity="0.85"/>
+            <circle cx="219" cy="190" r="10" fill="#0ea5e9" opacity="0.85"/>
+            <circle cx="81" cy="190" r="10" fill="#0ea5e9" opacity="0.85"/>
+            <circle cx="150" cy="230" r="8" fill="#0ea5e9" opacity="0.6"/>
+            <!-- Labels -->
+            <text x="150" y="160" text-anchor="middle" fill="#000" font-size="9" font-weight="700">Si</text>
+            <text x="150" y="55" text-anchor="middle" fill="rgba(14,165,233,0.6)" font-size="8" font-weight="600">C</text>
+            <text x="235" y="195" text-anchor="middle" fill="rgba(14,165,233,0.6)" font-size="8" font-weight="600">C</text>
+            <text x="65" y="195" text-anchor="middle" fill="rgba(14,165,233,0.6)" font-size="8" font-weight="600">C</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PROPERTIES ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="properties" style="position:relative;z-index:2">
+  <div class="max-w" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:80px">
+      <span class="t-label" style="display:block;margin-bottom:24px">04 / Properties</span>
+      <h2 class="t-headline" style="margin-bottom:24px">Built to withstand.</h2>
+      <p class="t-body" style="max-width:520px;margin:0 auto">
+        Those strong covalent bonds give SiC physical and electronic characteristics that make it useful in demanding environments.
+      </p>
+    </div>
+    <div class="grid-2">
+      <div class="reveal glass" style="padding:32px;transition-delay:.1s">
+        <span class="t-label" style="display:block;margin-bottom:32px">Physical</span>
+        <div style="display:flex;flex-direction:column;gap:24px">
+          <div><span style="color:#e8e8e8;font-size:0.9rem;font-weight:600;display:block">Extreme hardness</span><span style="color:#666;font-size:0.8rem">Mohs ~9</span></div>
+          <div><span style="color:#e8e8e8;font-size:0.9rem;font-weight:600;display:block">Heat resistant</span><span style="color:#666;font-size:0.8rem">&gt;2,700°C</span></div>
+          <div><span style="color:#e8e8e8;font-size:0.9rem;font-weight:600;display:block">Chemically stable</span><span style="color:#666;font-size:0.8rem">Stable under many operating conditions</span></div>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:32px;transition-delay:.2s">
+        <span class="t-label" style="display:block;margin-bottom:32px">Electronic</span>
+        <div style="display:flex;flex-direction:column;gap:24px">
+          <div><span style="color:#e8e8e8;font-size:0.9rem;font-weight:600;display:block">Wide band gap</span><span style="color:#666;font-size:0.8rem">~3.2 eV</span></div>
+          <div><span style="color:#e8e8e8;font-size:0.9rem;font-weight:600;display:block">High thermal conductivity</span><span style="color:#666;font-size:0.8rem">Good heat dissipation</span></div>
+          <div><span style="color:#e8e8e8;font-size:0.9rem;font-weight:600;display:block">High voltage capable</span><span style="color:#666;font-size:0.8rem">Handles high stress</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== LOGIC CHAIN ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="logic" style="position:relative;z-index:2">
+  <div class="max-w" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:96px">
+      <span class="t-label" style="display:block;margin-bottom:24px">05 / The Logic Chain</span>
+      <h2 class="t-headline">From atoms to industry.</h2>
+    </div>
+    <!-- Desktop -->
+    <div class="hide-mob" style="position:relative">
+      <div class="chain-line" id="chainLine" style="position:absolute;top:10px;left:12%;right:12%"></div>
+      <div style="display:flex;justify-content:space-between;gap:16px">
+        <div class="reveal" style="width:200px;text-align:center;transition-delay:.1s">
+          <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:20px">01</span>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:8px">3D Network</h3>
+          <p style="color:#666;font-size:0.8rem;line-height:1.5">Si and C bonded in a rigid lattice</p>
+        </div>
+        <div class="reveal" style="width:200px;text-align:center;transition-delay:.22s">
+          <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:20px">02</span>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:8px">Strong Bonds</h3>
+          <p style="color:#666;font-size:0.8rem;line-height:1.5">Directional covalent bonds</p>
+        </div>
+        <div class="reveal" style="width:200px;text-align:center;transition-delay:.34s">
+          <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:20px">03</span>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:8px">Extreme Properties</h3>
+          <p style="color:#666;font-size:0.8rem;line-height:1.5">Hardness, heat resistance, wide band gap</p>
+        </div>
+        <div class="reveal" style="width:200px;text-align:center;transition-delay:.46s">
+          <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:20px">04</span>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:8px">Real Uses</h3>
+          <p style="color:#666;font-size:0.8rem;line-height:1.5">EVs, solar, power systems, abrasives</p>
+        </div>
+      </div>
+    </div>
+    <!-- Mobile -->
+    <div class="show-mob" style="display:flex;flex-direction:column;align-items:center;gap:32px">
+      <div class="reveal text-center" style="max-width:280px">
+        <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:12px">01</span>
+        <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">3D Network</h3>
+        <p style="color:#666;font-size:0.8rem">Si and C bonded in a rigid lattice</p>
+      </div>
+      <div class="reveal text-center" style="max-width:280px;transition-delay:.12s">
+        <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:12px">02</span>
+        <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">Strong Bonds</h3>
+        <p style="color:#666;font-size:0.8rem">Directional covalent bonds</p>
+      </div>
+      <div class="reveal text-center" style="max-width:280px;transition-delay:.24s">
+        <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:12px">03</span>
+        <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">Extreme Properties</h3>
+        <p style="color:#666;font-size:0.8rem">Hardness, heat resistance, wide band gap</p>
+      </div>
+      <div class="reveal text-center" style="max-width:280px;transition-delay:.36s">
+        <span style="font-size:0.6rem;color:#00d4ff;letter-spacing:0.15em;display:block;margin-bottom:12px">04</span>
+        <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">Real Uses</h3>
+        <p style="color:#666;font-size:0.8rem">EVs, solar, power systems, abrasives</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== COMMON USES ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="uses" style="position:relative;z-index:2">
+  <div class="max-w" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:80px">
+      <span class="t-label" style="display:block;margin-bottom:24px">06 / Applications</span>
+      <h2 class="t-headline" style="margin-bottom:24px">Where SiC matters.</h2>
+      <p class="t-body" style="max-width:520px;margin:0 auto">
+        SiC is used across several industries where high temperature and high voltage performance are needed.
+      </p>
+    </div>
+    <!-- Visual Placeholder -->
+    <div class="reveal img-placeholder" style="margin-bottom:80px;transition-delay:.1s">
+      <div class="img-placeholder-inner">
+        <svg width="120" height="120" viewBox="0 0 120 120" style="opacity:0.4">
+          <rect x="20" y="30" width="30" height="60" rx="4" fill="none" stroke="#00d4ff" stroke-width="1"/>
+          <rect x="55" y="20" width="30" height="60" rx="4" fill="none" stroke="#0ea5e9" stroke-width="1"/>
+          <line x1="50" y1="45" x2="55" y2="45" stroke="#00d4ff" stroke-width="0.5"/>
+          <line x1="50" y1="75" x2="55" y2="75" stroke="#00d4ff" stroke-width="0.5"/>
+          <circle cx="35" cy="60" r="8" fill="rgba(0,212,255,0.15)"/>
+          <circle cx="70" cy="50" r="8" fill="rgba(14,165,233,0.15)"/>
+        </svg>
+      </div>
+    </div>
+    <div class="grid-2" style="max-width:900px;margin:0 auto">
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.15s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><rect x="3" y="11" width="18" height="8" rx="2"/><path d="M7 11V7a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">EV Power Systems</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">Converts DC battery power to AC motor drive with far less energy loss.</p>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.2s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2m-7.07-16.93l1.41 1.41m11.32 11.32l1.41 1.41M1 12h2m18 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">Solar Inverters</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">Handles high voltage from solar arrays with higher conversion efficiency.</p>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.25s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M4 16v-2a2 2 0 012-2h12a2 2 0 012 2v2"/><path d="M6 20h12"/><path d="M12 4v10"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">Industrial Power</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">Railways, grids, and factories rely on SiC for stable high-power switching.</p>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.3s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e8e8e8;font-weight:600;font-size:0.9rem;margin-bottom:4px">Abrasives</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">Mohs hardness ~9. Ideal for grinding, cutting, and polishing hard materials.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== BENEFITS vs RISKS ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="risks" style="position:relative;z-index:2">
+  <div class="max-w-sm" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:80px">
+      <span class="t-label" style="display:block;margin-bottom:24px">07 / Balance</span>
+      <h2 class="t-headline">Benefits and trade-offs.</h2>
+    </div>
+    <div class="grid-2">
+      <div class="reveal glass" style="padding:32px;border-left:2px solid rgba(0,212,255,0.25);transition-delay:.1s">
+        <span class="t-label" style="display:block;margin-bottom:32px">Benefits</span>
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="color:#ccc;font-size:0.9rem">High efficiency in power conversion</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="color:#ccc;font-size:0.9rem">Reduced energy loss</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="color:#ccc;font-size:0.9rem">Can operate at high temperatures and voltages</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="color:#ccc;font-size:0.9rem">Enables modern power electronics</span>
+          </div>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:32px;border-left:2px solid rgba(255,255,255,0.08);transition-delay:.2s">
+        <span class="t-label" style="display:block;margin-bottom:32px;color:#888">Trade-offs</span>
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span style="color:#999;font-size:0.9rem">High-temperature manufacturing</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span style="color:#999;font-size:0.9rem">Energy-intensive production</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span style="color:#999;font-size:0.9rem">Industrial dust exposure risk</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span style="color:#999;font-size:0.9rem">Requires protective equipment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SAFE USE ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="safety" style="position:relative;z-index:2">
+  <div class="max-w-sm" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:64px">
+      <span class="t-label" style="display:block;margin-bottom:24px">08 / Safety</span>
+      <h2 class="t-headline" style="margin-bottom:24px">Handle with care.</h2>
+      <p class="t-body" style="max-width:480px;margin:0 auto">
+        SiC is stable, but manufacturing dust requires proper precautions.
+      </p>
+    </div>
+    <div class="reveal grid-4" style="margin-bottom:40px;transition-delay:.1s">
+      <div class="glass" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M4 14v-1a2 2 0 012-2h12a2 2 0 012 2v1"/><path d="M12 4v8"/></svg>
+        <span style="color:#aaa;font-size:0.8rem">Ventilation</span>
+      </div>
+      <div class="glass" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M12 2L2 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/></svg>
+        <span style="color:#aaa;font-size:0.8rem">Protective gear</span>
+      </div>
+      <div class="glass" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
+        <span style="color:#aaa;font-size:0.8rem">Dust control</span>
+      </div>
+      <div class="glass" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        <span style="color:#aaa;font-size:0.8rem">Safety protocols</span>
+      </div>
+    </div>
+    <div class="reveal glass" style="padding:32px;text-align:center;transition-delay:.2s">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5" style="margin:0 auto 16px;display:block"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <p style="color:#aaa;font-size:0.9rem;line-height:1.6;max-width:480px;margin:0 auto">
+        There is no simple safer material that can fully replace SiC in the same high-performance role. Traditional silicon can be used in some devices, but it does not perform as well under extreme conditions.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== INTERVIEW ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="interview" style="position:relative;z-index:2">
+  <div class="max-w-sm" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:64px">
+      <span class="t-label" style="display:block;margin-bottom:24px">09 / Primary Research</span>
+      <h2 class="t-headline">Industry insight.</h2>
+    </div>
+    <div class="reveal" style="transition-delay:.15s">
+      <div class="glass" style="padding:48px 40px;text-align:center">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 24px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <h3 style="color:#f0f0f0;font-size:1.3rem;font-weight:700;margin-bottom:4px">Mr. Lianwen He</h3>
+        <p style="color:#888;font-size:0.85rem;margin-bottom:40px">SiC production management &amp; material purchasing</p>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:40px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 21v-6h6v6"/></svg>
+            <span style="color:#888;font-size:0.8rem">Xinjiang Tian Hongji Technology Co., Ltd.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span style="color:#888;font-size:0.8rem">8 years in industry</span>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,0.04);padding-top:32px">
+          <p style="color:#aaa;font-size:0.85rem;line-height:1.6;max-width:480px;margin:0 auto 28px">
+            As a professional with 8 years of experience in SiC production, Mr. He provides practical insight into how this material is manufactured and used in industry. His perspective helps connect classroom chemistry to real-world applications.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr;gap:12px;text-align:left;max-width:480px;margin:0 auto">
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M2 20a2 2 0 002 2h16a2 2 0 002-2V8l-7 5V8l-7 5V4a2 2 0 00-2-2H4a2 2 0 00-2 2z"/></svg>
+              <span style="color:#888;font-size:0.8rem">Production processes and material sourcing</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span style="color:#888;font-size:0.8rem">Workplace safety in SiC manufacturing</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              <span style="color:#888;font-size:0.8rem">Industrial use and market relevance</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:0.6rem;color:#444;letter-spacing:0.15em;text-transform:uppercase;margin-top:32px">Profile presented without fabricated quotations</p>
+  </div>
+</section>
+
+<!-- ==================== SOCIETY ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="impact" style="position:relative;z-index:2">
+  <div class="max-w" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:80px">
+      <span class="t-label" style="display:block;margin-bottom:24px">10 / Impact</span>
+      <h2 class="t-headline" style="margin-bottom:24px">From atoms to energy systems.</h2>
+      <p class="t-body" style="max-width:540px;margin:0 auto">
+        SiC's atomic structure gives it electronic properties that matter in real industrial systems.
+      </p>
+    </div>
+    <!-- Visual -->
+    <div class="reveal img-placeholder" style="margin-bottom:80px;transition-delay:.1s">
+      <div class="img-placeholder-inner">
+        <svg width="160" height="120" viewBox="0 0 160 120" style="opacity:0.35">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#00d4ff" stroke-width="0.5"/>
+          <circle cx="60" cy="60" r="35" fill="none" stroke="#0ea5e9" stroke-width="0.5"/>
+          <circle cx="60" cy="60" r="20" fill="rgba(0,212,255,0.1)"/>
+          <circle cx="100" cy="60" r="50" fill="none" stroke="#0ea5e9" stroke-width="0.5"/>
+          <circle cx="100" cy="60" r="35" fill="none" stroke="#00d4ff" stroke-width="0.5"/>
+          <circle cx="100" cy="60" r="20" fill="rgba(14,165,233,0.1)"/>
+          <line x1="80" y1="60" x2="90" y2="60" stroke="#00d4ff" stroke-width="0.5"/>
+        </svg>
+      </div>
+    </div>
+    <div class="grid-2" style="max-width:900px;margin:0 auto">
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.15s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><rect x="3" y="11" width="18" height="8" rx="2"/><path d="M7 11V7a2 2 0 012-2h6a2 2 0 012 2v4"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e0e0e0;font-weight:600;font-size:0.9rem;margin-bottom:4px">Electric vehicles</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">SiC devices reduce energy loss during power conversion, which helps improve the efficiency of EV drivetrains.</p>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.2s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2m-7.07-16.93l1.41 1.41m11.32 11.32l1.41 1.41M1 12h2m18 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e0e0e0;font-weight:600;font-size:0.9rem;margin-bottom:4px">Solar power</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">SiC inverters handle high voltage from solar panels with less energy loss than traditional silicon inverters.</p>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.25s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><path d="M4 16v-2a2 2 0 012-2h12a2 2 0 012 2v2"/><path d="M6 20h12"/><path d="M12 4v10"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e0e0e0;font-weight:600;font-size:0.9rem;margin-bottom:4px">Industrial power</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">SiC components operate reliably under high temperature and high voltage stress in grid and railway systems.</p>
+        </div>
+      </div>
+      <div class="reveal glass" style="padding:28px;display:flex;gap:16px;align-items:flex-start;transition-delay:.3s">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div>
+          <h3 style="color:#e0e0e0;font-weight:600;font-size:0.9rem;margin-bottom:4px">Why it matters</h3>
+          <p style="color:#888;font-size:0.8rem;line-height:1.5">Because of its atomic structure, SiC converts and controls electrical power more efficiently than many alternatives.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CONCLUSION ==================== -->
+<div class="divider"></div>
+<section class="section-pad" id="conclusion" style="position:relative;z-index:2;min-height:50vh;display:flex;align-items:center;justify-content:center">
+  <div class="max-w-sm text-center" style="padding:0 24px">
+    <div class="reveal">
+      <span class="t-label" style="display:block;margin-bottom:32px">Conclusion</span>
+      <h2 class="t-headline" style="margin-bottom:32px">Structure drives function.</h2>
+      <p class="t-body">
+        SiC matters because its atomic structure — a rigid 3D covalent network — gives it the hardness, heat resistance, and electronic properties needed for modern power electronics.
+      </p>
+    </div>
+    <div class="reveal" style="transition-delay:.3s">
+      <p style="font-size:0.65rem;color:#444;letter-spacing:0.25em;text-transform:uppercase;margin-top:64px">From crystal lattice to EV motor</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== REFERENCES ==================== -->
+<div class="divider"></div>
+<section style="padding:80px 24px 48px;position:relative;z-index:2">
+  <div class="max-w-sm" style="padding:0 24px">
+    <div class="reveal text-center" style="margin-bottom:40px">
+      <span class="t-label" style="display:block;margin-bottom:16px">Sources</span>
+      <h3 style="color:#f0f0f0;font-weight:700;font-size:1rem">References</h3>
+    </div>
+    <div class="reveal" style="transition-delay:.1s">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="glass" style="padding:12px 20px"><span style="color:#888;font-size:0.85rem">Britannica — Silicon Carbide</span></div>
+        <div class="glass" style="padding:12px 20px"><span style="color:#888;font-size:0.85rem">PubChem — SiC Compound Summary</span></div>
+        <div class="glass" style="padding:12px 20px"><span style="color:#888;font-size:0.85rem">Educational chemistry sources (periodic trends, covalent networks)</span></div>
+        <div class="glass" style="padding:12px 20px"><span style="color:#888;font-size:0.85rem">Interview: Mr. Lianwen He, Xinjiang Tian Hongji Technology Co., Ltd.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <p>Silicon Carbide &middot; A Student Research Project</p>
+</footer>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+/* ===== CANVAS BACKGROUND ===== */
+const canvas=document.getElementById('bgCanvas');
+const ctx=canvas.getContext('2d');
+let W=0,H=0,t=0;
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio,2);
+  W=window.innerWidth;H=window.innerHeight;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function draw(){
+  t+=0.003;
+  ctx.clearRect(0,0,W,H);
+  const count=Math.floor(W/120);
+  for(let i=0;i<count;i++){
+    const bx=((i+0.5)/count)*W;
+    const x=bx+Math.sin(t+i*0.7)*40+Math.sin(t*0.3+i*2.1)*20;
+    const op=0.012+Math.sin(t*0.5+i)*0.008;
+    const g=ctx.createLinearGradient(x,0,x,H);
+    g.addColorStop(0,'rgba(0,212,255,0)');
+    g.addColorStop(0.3+Math.sin(t+i)*0.2,`rgba(0,212,255,${op})`);
+    g.addColorStop(0.7+Math.sin(t+i*0.5)*0.15,`rgba(14,165,233,${op*0.5})`);
+    g.addColorStop(1,'rgba(0,212,255,0)');
+    ctx.beginPath();ctx.moveTo(x,0);
+    for(let y=0;y<H;y+=8)ctx.lineTo(x+Math.sin(y*0.004+t+i*0.8)*6,y);
+    ctx.strokeStyle=g;ctx.lineWidth=0.8;ctx.stroke();
+  }
+  for(let j=0;j<4;j++){
+    const y=H*(0.15+j*0.25)+Math.sin(t*0.4+j*1.7)*30;
+    const g2=ctx.createLinearGradient(0,y-40,0,y+40);
+    const a=0.01+Math.sin(t*0.6+j)*0.008;
+    g2.addColorStop(0,'rgba(0,212,255,0)');
+    g2.addColorStop(0.5,`rgba(0,212,255,${a})`);
+    g2.addColorStop(1,'rgba(0,212,255,0)');
+    ctx.fillStyle=g2;ctx.fillRect(0,y-40,W,80);
+  }
+  const g3=ctx.createRadialGradient(W*0.5,0,0,W*0.5,0,H*0.5);
+  g3.addColorStop(0,`rgba(0,212,255,${0.015+Math.sin(t*0.4)*0.005})`);
+  g3.addColorStop(1,'rgba(0,212,255,0)');
+  ctx.fillStyle=g3;ctx.fillRect(0,0,W,H*0.5);
+  requestAnimationFrame(draw);
+}
+resize();draw();
+window.addEventListener('resize',resize);
+
+/* ===== SCROLL REVEAL ===== */
+const reveals=document.querySelectorAll('.reveal,.chain-line');
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')});
+},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+reveals.forEach(el=>obs.observe(el));
+
+/* ===== NAV ===== */
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('vis',window.scrollY>150);
+},{passive:true});
+
+/* ===== SMOOTH SCROLL ===== */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t)t.scrollIntoView({behavior:'smooth'});
+  });
+});
+
+/* ===== HERO IMG FADE ===== */
+setTimeout(()=>document.getElementById('heroImg').classList.add('loaded'),200);
+</script>
+
+<style>
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+
+</body>
+</html>
